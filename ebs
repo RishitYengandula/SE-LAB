@@ -1,0 +1,84 @@
+attaching and mounting an ebs volume to and ec2 instance : 
+1) AWS->EC2->EBS->Volumes
+Create volume
+vol type,size and AZ (same as EC2)
+
+2) Attaching Volume
+click on the volume
+actions -> attach volume
+select instance, device name (/dev/xvdf)
+
+3) Connecting to EC2 instance
+ssh -i key.pem ec2-user@<public_ip>
+
+4) Verify attached disk
+lsblk 
+/dev/xvda
+/dev/xvdf
+
+5) Create a partition
+fdisk /dev/xvdf
+inside click n,p, enter,enter,enter,w
+partprobe
+
+6) Verify new partition
+lsblk -fs
+
+7) Format the partition
+mkfs.xfs /dev/xvdf1
+verify: lsblk -fs
+
+8) Create mount directory
+mkdir /mnt/rishit
+
+9) Mount the volume
+mount /dev/xvdf1 /mnt/rishit
+
+10) Check persistence of the mount
+check uuid of the volume -> blkid /dev/xvdf1
+edit fstab -> nano etc/fstab
+uuid=<uuid_value> /mnt/rishit xfs defaults.nofail 0 0
+save and exit
+
+test: mount -a
+
+11) Verify perisitence
+reboot the instance and reconnect to check (df -h)
+
+12) detach and reattach the volume
+ec2->volume->actions->detach volume
+attach->log in to new instance->create mount directory->mount volume
+
+1) create snapshot
+ec2->volumes
+ebs volume
+actions->create snapshot
+add name/description
+create snapshot
+
+2) copy snapshot to another region
+ec2->snapshots
+select the snapshot
+actions->copy snapshot
+choose destination region
+click copy snapshot
+
+3) switch to des region
+change region
+ec2->snapshots
+check that snapshot is available
+
+4) create volume from snapshot
+select the snapshot
+actions->create volume
+choose volutme type, size and AZ
+create volume
+
+5) attach volume to ec2
+ec2->volumes
+select new volume
+actions->attach volume
+choose instance and device name
+attach volume
+
+6) mount if necessary
